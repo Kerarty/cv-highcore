@@ -18,51 +18,52 @@ function shade(hex, f = 0.62) {
   return (r << 16) | (g << 8) | b;
 }
 
-// мультяшный танк в духе Tanks A Lot: клиновидный нос, катки в ленте,
-// купол с кольцом, гофра ствола, флажок — и сердитая морда у босса
+// мультяшный танк в духе Tanks A Lot: едет вправо — гусеницы лентами сверху и снизу,
+// клиновидный нос, купол с кольцом, гофра ствола, флажок; у босса морда смотрит по стволу
 export function makeTank(color, scale = 1, opts = {}) {
   const c = new Container();
   const dark = shade(color, 0.62);
   const darker = shade(color, 0.45);
 
   const shadow = new Graphics();
-  shadow.ellipse(0, 32, 42, 10).fill({ color: 0x1e3a12, alpha: 0.28 });
+  shadow.ellipse(0, 4, 46, 28).fill({ color: 0x1e3a12, alpha: 0.26 });
   c.addChild(shadow);
 
-  // гусеницы: скруглённая лента с поперечными сегментами и катками
-  const mkTread = (x) => {
+  // гусеницы: две ленты вдоль движения, сверху и снизу корпуса
+  const mkTread = (y) => {
     const t = new Graphics();
-    t.roundRect(x, -27, 15, 54, 7.5).fill({ color: 0x3b4252 }).stroke({ width: 3, color: OUTLINE });
-    for (let wy = -23; wy <= 23; wy += 7.5) {
-      t.moveTo(x + 1.5, wy).lineTo(x + 13.5, wy).stroke({ width: 1.5, color: 0x222836, alpha: 0.8 });
+    t.roundRect(-34, y, 76, 14, 7).fill({ color: 0x3b4252 }).stroke({ width: 3, color: OUTLINE });
+    for (let wx = -28; wx <= 28; wx += 8) {
+      t.moveTo(wx, y + 2).lineTo(wx, y + 12).stroke({ width: 1.5, color: 0x222836, alpha: 0.8 });
     }
-    for (let wy = -14; wy <= 14; wy += 14) {
-      t.circle(x + 7.5, wy, 3.4).fill({ color: 0xa8b2c1 }).stroke({ width: 1.5, color: 0x222836 });
+    for (let wx = -26; wx <= 26; wx += 13) {
+      t.circle(wx, y + 7, 3.4).fill({ color: 0xa8b2c1 }).stroke({ width: 1.5, color: 0x222836 });
     }
     return t;
   };
-  c.addChild(mkTread(-39), mkTread(24));
+  c.addChild(mkTread(-31), mkTread(17));
 
-  // корпус: тракторный нос-клин (спереди уже), задняя часть шире
+  // корпус: клин-нос вправо, между лентами
   const body = new Graphics();
-  body.moveTo(-30, -14);
-  body.quadraticCurveTo(-30, -22, -22, -22);
-  body.lineTo(10, -22);
-  body.quadraticCurveTo(30, -20, 30, -8);
-  body.lineTo(30, 8);
-  body.quadraticCurveTo(30, 20, 10, 22);
-  body.lineTo(-22, 22);
-  body.quadraticCurveTo(-30, 22, -30, 14);
+  body.moveTo(-30, -18);
+  body.lineTo(14, -18);
+  body.quadraticCurveTo(30, -16, 30, -6);
+  body.lineTo(30, 6);
+  body.quadraticCurveTo(30, 16, 14, 18);
+  body.lineTo(-30, 18);
+  body.quadraticCurveTo(-34, 16, -34, 6);
+  body.lineTo(-34, -6);
+  body.quadraticCurveTo(-34, -18, -30, -18);
   body.closePath();
   body.fill({ color }).stroke({ width: 4, color: dark });
-  body.roundRect(-20, -13, 24, 8, 4).fill({ color: 0xffffff, alpha: 0.32 });
-  body.roundRect(-20, 5, 16, 6, 3).fill({ color: 0xffffff, alpha: 0.18 });
+  body.roundRect(-22, -11, 26, 8, 4).fill({ color: 0xffffff, alpha: 0.32 });
+  body.roundRect(-22, 3, 18, 6, 3).fill({ color: 0xffffff, alpha: 0.18 });
   c.addChild(body);
 
-  // флажок на антенне — как у новичка в Tanks A Lot
+  // флажок на антенне сзади — как у новичка в Tanks A Lot
   const flag = new Graphics();
-  flag.moveTo(-14, -20).lineTo(-26, -34).stroke({ width: 2.5, color: OUTLINE });
-  flag.moveTo(-26, -34).lineTo(-14, -31).lineTo(-26, -26).closePath()
+  flag.moveTo(-18, -18).lineTo(-30, -32).stroke({ width: 2.5, color: OUTLINE });
+  flag.moveTo(-30, -32).lineTo(-18, -29).lineTo(-30, -24).closePath()
     .fill({ color: 0xffd23f }).stroke({ width: 2, color: OUTLINE });
   c.addChild(flag);
 
@@ -75,17 +76,18 @@ export function makeTank(color, scale = 1, opts = {}) {
   barrel.roundRect(40, -8, 8, 16, 4).fill({ color: 0x3b4252 }).stroke({ width: 3, color: OUTLINE });
   turret.addChild(barrel);
   const dome = new Graphics();
-  dome.circle(0, 0, 16).fill({ color }).stroke({ width: 4, color: dark });
-  dome.circle(0, 0, 9.5).stroke({ width: 2.5, color: darker, alpha: 0.85 });
+  dome.circle(0, 0, 15).fill({ color }).stroke({ width: 4, color: dark });
+  dome.circle(0, 0, 9).stroke({ width: 2.5, color: darker, alpha: 0.85 });
   dome.circle(-6, -7, 5).fill({ color: 0xffffff, alpha: 0.35 });
   turret.addChild(dome);
   if (opts.eyes) {
+    // морда сориентирована по стволу: «вперёд» = +x, глаза разнесены поперёк
     const face = new Graphics();
-    face.circle(-5, 4, 4).fill({ color: 0xffffff }).stroke({ width: 2, color: OUTLINE });
-    face.circle(6, 4, 4).fill({ color: 0xffffff }).stroke({ width: 2, color: OUTLINE });
-    face.circle(-4, 5, 1.8).fill({ color: 0x1d2333 });
-    face.circle(7, 5, 1.8).fill({ color: 0x1d2333 });
-    face.moveTo(-11, -4).lineTo(-2, -1).moveTo(12, -4).lineTo(3, -1).stroke({ width: 2.5, color: OUTLINE });
+    face.circle(5, -7, 4).fill({ color: 0xffffff }).stroke({ width: 2, color: OUTLINE });
+    face.circle(5, 7, 4).fill({ color: 0xffffff }).stroke({ width: 2, color: OUTLINE });
+    face.circle(6.5, -7, 1.8).fill({ color: 0x1d2333 });
+    face.circle(6.5, 7, 1.8).fill({ color: 0x1d2333 });
+    face.moveTo(0, -12).lineTo(10, -9).moveTo(0, 12).lineTo(10, 9).stroke({ width: 2.5, color: OUTLINE });
     turret.addChild(face);
   }
   c.addChild(turret);
