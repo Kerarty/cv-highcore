@@ -333,7 +333,7 @@ export async function createBattle(stageEl, getLoc) {
     g.addChild(glow, core);
     g.position.set(from.x, from.y);
     world.addChild(g);
-    projectiles.push({ g, ability, target, crit, speed: 640, life: 4 });
+    projectiles.push({ g, ability, target, crit, speed: 640, travel: 0 });
   }
 
   function useAbility(id) {
@@ -413,8 +413,12 @@ export async function createBattle(stageEl, getLoc) {
   };
 
   // ---------- апдейт ----------
+  let lastDt = 0;
+  let lastTick = performance.now();
   app.ticker.add((ticker) => {
     const dt = Math.min(0.12, ticker.deltaMS / 1000);
+    lastDt = dt;
+    lastTick = performance.now();
     const w = app.screen.width;
     const h = app.screen.height;
 
@@ -445,15 +449,10 @@ export async function createBattle(stageEl, getLoc) {
       // кулдауны
       for (const ab of ABILITIES) if (cds[ab.id] > 0) cds[ab.id] = Math.max(0, cds[ab.id] - dt);
 
-      // снаряды игрока
+      // снаряды игрока: лимит — пройденная дистанция, а не время,
+      // чтобы снаряд долетал при любом FPS
       for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i];
-        p.life -= dt;
-        if (p.life <= 0) {
-          p.g.destroy();
-          projectiles.splice(i, 1);
-          continue;
-        }
         if (!p.target.alive) {
           const alive = aliveChips();
           if (alive.length === 0) { p.g.destroy(); projectiles.splice(i, 1); continue; }
@@ -479,6 +478,11 @@ export async function createBattle(stageEl, getLoc) {
         const v = p.speed * dt;
         p.g.x += (dx / d) * v;
         p.g.y += (dy / d) * v;
+        p.travel += v;
+        if (p.travel > 3000) {
+          p.g.destroy();
+          projectiles.splice(i, 1);
+        }
       }
 
       // огонь босса
@@ -506,7 +510,7 @@ export async function createBattle(stageEl, getLoc) {
           g,
           vx: (dx / d) * BOSS.projectileSpeed,
           vy: (dy / d) * BOSS.projectileSpeed,
-          life: 4.5,
+          travel: 0,
         });
         spawnParticles(muzzle.x, muzzle.y, BOSS_COLOR, 4, 80);
       }
@@ -514,9 +518,10 @@ export async function createBattle(stageEl, getLoc) {
       // снаряды босса
       for (let i = bossShots.length - 1; i >= 0; i--) {
         const s = bossShots[i];
+        const step = BOSS.projectileSpeed * dt;
         s.g.x += s.vx * dt;
         s.g.y += s.vy * dt;
-        s.life -= dt;
+        s.travel += step;
         const hitDist = Math.hypot(s.g.x - playerPos.x, s.g.y - playerPos.y);
         if (hitDist < 28) {
           confidence = Math.max(0, confidence - BOSS.dmg);
@@ -532,7 +537,7 @@ export async function createBattle(stageEl, getLoc) {
           if (battle.onConfidence) battle.onConfidence(confidence);
           continue;
         }
-        if (s.life <= 0 || s.g.x < -30 || s.g.x > w + 30 || s.g.y < -30 || s.g.y > h + 30) {
+        if (s.travel > 2200 || s.g.x < -30 || s.g.x > w + 30 || s.g.y < -30 || s.g.y > h + 30) {
           s.g.destroy();
           bossShots.splice(i, 1);
         }
@@ -576,6 +581,21 @@ export async function createBattle(stageEl, getLoc) {
 
   battle.reset(1);
   battle.onConfidence && battle.onConfidence(confidence);
+
+  // watchdog: если вкладка не даёт rAF (фон, виртуализация) — крутим тикер таймером;
+  // когда rAF жив, ручные тики не срабатывают
+  setInterval(() => {
+    if (performance.now() - lastTick > 150) app.ticker.update(performance.now());
+  }, 50);
+
+  // отладочная ручка (видна только в консоли)
+  window.__cvDebug = {
+    get elapsed() { return elapsed; },
+    get dt() { return lastDt; },
+    get projectiles() { return projectiles.length; },
+    get paused() { return battle.paused; },
+    get won() { return battle.won; },
+  };
 
   return battle;
 }
