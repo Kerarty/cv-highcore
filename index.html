@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Играбельное резюме: геймдизайнер против вакансии. Босс-файт + баланс-инспектор.">
+  <title>CV ARENA — Ярослав Кукар · Game Designer vs Highcore</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%94%EF%B8%8F%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header id="topbar">
+    <div class="logo">CV<span>ARENA</span></div>
+    <div class="topbar-right">
+      <a id="btn-cv" class="tb-btn" href="docs/CV_Yaroslav.pdf" target="_blank" rel="noopener">📄 CV (PDF)</a>
+      <button id="btn-back" class="tb-btn hidden">◀ Бой</button>
+      <button id="btn-skip" class="tb-btn accent">Инспектор →</button>
+      <button id="btn-lang" class="tb-btn">EN</button>
+    </div>
+  </header>
+
+  <!-- ИНТРО -->
+  <main id="screen-intro" class="screen">
+    <div class="intro-inner">
+      <div class="intro-kicker" data-loc="intro_kicker"></div>
+      <h1 class="intro-title" data-loc="intro_title"></h1>
+      <p class="intro-sub" data-loc="intro_sub"></p>
+      <div class="intro-boss">
+        <div class="intro-boss-head" data-loc="intro_boss_head"></div>
+        <div id="intro-chips" class="intro-chips"></div>
+      </div>
+      <div id="intro-badges" class="intro-badges"></div>
+      <button id="btn-fight" class="big-btn" data-loc="intro_fight"></button>
+      <a class="intro-cv" href="docs/CV_Yaroslav.pdf" target="_blank" rel="noopener">
+        <span data-loc="intro_cv_link"></span> 📄
+      </a>
+    </div>
+  </main>
+
+  <!-- БОЙ -->
+  <main id="screen-battle" class="screen hidden">
+    <div id="battle-stage"></div>
+    <div id="battle-vignette" aria-hidden="true"></div>
+
+    <div id="battle-hud">
+      <div class="hud-row">
+        <span class="hud-label" data-loc="hud_confidence"></span>
+        <div class="confidence-track"><div id="confidence-fill"></div></div>
+      </div>
+      <div class="hud-row">
+        <span id="req-progress" class="hud-progress"></span>
+      </div>
+    </div>
+
+    <div id="battle-hint" class="hud-hint" data-loc="battle_hint"></div>
+
+    <div id="hotbar"></div>
+
+    <div id="fact-card" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="fact-title">
+      <div class="fact-inner">
+        <div class="fact-head">
+          <span id="fact-icon" class="fact-icon"></span>
+          <div>
+            <div class="fact-kicker" data-loc="fact_kicker"></div>
+            <div id="fact-title" class="fact-title"></div>
+          </div>
+        </div>
+        <p id="fact-text" class="fact-text"></p>
+        <button id="btn-continue" class="big-btn small" data-loc="fact_continue"></button>
+      </div>
+    </div>
+
+    <div id="victory" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="victory-title">
+      <div class="victory-inner">
+        <div class="victory-trophy" aria-hidden="true">🏆</div>
+        <h2 class="victory-title" id="victory-title" data-loc="victory_title"></h2>
+        <p class="victory-sub" data-loc="victory_sub"></p>
+        <div id="victory-stats" class="victory-stats"></div>
+        <div class="victory-btns">
+          <button id="btn-inspector" class="big-btn" data-loc="victory_inspector"></button>
+          <button id="btn-rematch" class="big-btn ghost" data-loc="victory_rematch"></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="hidden"></div>
+  </main>
+
+  <!-- ИНСПЕКТОР -->
+  <main id="screen-inspector" class="screen hidden">
+    <div class="insp-toolbar">
+      <div class="insp-crumb" data-loc="insp_title"></div>
+      <div class="insp-toolbar-right">
+        <button id="btn-to-battle" class="tb-btn accent" data-loc="insp_to_battle"></button>
+        <button id="btn-rematch2" class="tb-btn hidden" data-loc="victory_rematch"></button>
+      </div>
+    </div>
+    <div class="insp-body">
+      <aside class="insp-pane insp-hierarchy">
+        <div class="pane-head" data-loc="insp_hierarchy"></div>
+        <div id="hierarchy"></div>
+      </aside>
+      <section class="insp-pane insp-inspector">
+        <div class="pane-head" id="inspector-head"></div>
+        <div id="inspector-panel" class="inspector-panel"></div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
