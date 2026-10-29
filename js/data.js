@@ -35,14 +35,8 @@ export const LINKS = {
 };
 
 export const PROTOTYPE_REPOS = [
-  { repo: 'cv-playstrom',   href: 'https://github.com/Kerarty/cv-playstrom',   key: 'proto_playstrom' },
-  { repo: 'cv-playrix',     href: 'https://github.com/Kerarty/cv-playrix',     key: 'proto_playrix' },
-  { repo: 'cv-lesta',       href: 'https://github.com/Kerarty/cv-lesta',       key: 'proto_lesta' },
-  { repo: 'cv-top-games',   href: 'https://github.com/Kerarty/cv-top-games',   key: 'proto_top' },
-  { repo: 'cv-gametech',    href: 'https://github.com/Kerarty/cv-gametech',    key: 'proto_gametech' },
-  { repo: 'cv-igrotech',    href: 'https://github.com/Kerarty/cv-igrotech',    key: 'proto_igrotech' },
-  { repo: 'cv-openmygame',  href: 'https://github.com/Kerarty/cv-openmygame',  key: 'proto_openmygame' },
-  { repo: 'cv-stark-games', href: 'https://github.com/Kerarty/cv-stark-games', key: 'proto_stark' },
-  { repo: 'playble-ads',    href: 'https://github.com/Kerarty/playble-ads',    key: 'proto_playads' },
-  { repo: 'echoloop-playble', href: 'https://github.com/Kerarty/echoloop-playble', key: 'proto_echoloop' },
+  { repo: 'playble-ads',            href: 'https://github.com/Kerarty/playble-ads',              key: 'proto_playads' },
+  { repo: 'echoloop-playble',       href: 'https://github.com/Kerarty/echoloop-playble',         key: 'proto_echoloop' },
+  { repo: 'splash-kitty-playable-ad', href: 'https://github.com/Kerarty/splash-kitty-playable-ad', key: 'proto_splash' },
+  { repo: 'playable-ad-mob-rush',   href: 'https://github.com/Kerarty/playable-ad-mob-rush',     key: 'proto_mobrush' },
 ];

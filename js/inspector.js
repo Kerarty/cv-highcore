@@ -362,12 +362,12 @@ function sectionProto() {
       <a href="${p.href}" target="_blank" rel="noopener">${loc.link_open}</a>
     </div>`).join('');
   return `
-    <div class="sec-title">Experience_Prototypes</div>
+    <div class="sec-title">PlayablePrototypes</div>
     <p class="sec-desc">${loc.sec_proto_desc}</p>
     <div class="comp">
       <div class="comp-head">
         <div class="comp-check"></div>
-        <div class="comp-name">PlayableApplications (Collection)</div>
+        <div class="comp-name">PlayablePrototypes (Collection)</div>
         <div class="comp-tag">Asset</div>
       </div>
       <div class="proj-list">${rows}</div>
