@@ -28,8 +28,8 @@ const abilityButtons = new Map();
 const deadChips = new Set();
 let toastTimer = null;
 
-// светлее оттенок цвета способности для градиента кнопки
-function lighten(hex, f = 1.22) {
+// чуть светлее оттенок цвета способности для градиента кнопки
+function lighten(hex, f = 1.1) {
   const n = parseInt(hex.slice(1), 16);
   const r = Math.min(255, Math.round(((n >> 16) & 255) * f));
   const g = Math.min(255, Math.round(((n >> 8) & 255) * f));
