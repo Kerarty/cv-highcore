@@ -162,9 +162,10 @@ document.addEventListener('keydown', (e) => {
 
 // ---------- публичное API ----------
 
-export function initBattleUI(b, currentLang, hooks) {
+export function initBattleUI(b, currentLang, callbacks) {
   battle = b;
   lang = currentLang;
+  hooks = callbacks || hooks;
   deadChips.clear();
 
   buildHotbar();

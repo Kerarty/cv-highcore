@@ -115,14 +115,22 @@ async function rematchFromLab() {
 
 // ---------- события ----------
 
+function showBattleAfterVictory() {
+  showScreen('battle');
+  // после победы возвращаем игрока на экран победы, а не на пустую арену
+  if (battle && battle.won) {
+    document.getElementById('victory').classList.remove('hidden');
+  }
+}
+
 btn.fight.addEventListener('click', startFight);
 btn.skip.addEventListener('click', showInspector);
 btn.toBattle.addEventListener('click', () => {
-  if (battle) showScreen('battle');
+  if (battle) showBattleAfterVictory();
   else startFight();
 });
 btn.back.addEventListener('click', () => {
-  if (battle) showScreen('battle');
+  if (battle) showBattleAfterVictory();
   else startFight();
 });
 
