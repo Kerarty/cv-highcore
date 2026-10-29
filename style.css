@@ -326,6 +326,14 @@ button { font-family: inherit; cursor: pointer; }
   border: 2.5px solid var(--ink);
 }
 
+.intro-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .big-btn {
   position: relative;
   border: 4px solid var(--ink);
@@ -356,6 +364,8 @@ button { font-family: inherit; cursor: pointer; }
 .big-btn.ghost {
   background: #ffffff;
   color: var(--ink-soft);
+  font-size: 17px;
+  padding: 14px 28px;
   box-shadow: 0 6px 0 rgba(30, 40, 20, 0.35);
 }
 .big-btn.ghost:hover { filter: none; box-shadow: 0 8px 0 rgba(30, 40, 20, 0.35); }

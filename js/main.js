@@ -20,6 +20,7 @@ const screens = {
 
 const btn = {
   fight: document.getElementById('btn-fight'),
+  inspectorStart: document.getElementById('btn-inspector-start'),
   skip: document.getElementById('btn-skip'),
   back: document.getElementById('btn-back'),
   lang: document.getElementById('btn-lang'),
@@ -127,6 +128,7 @@ function showBattleAfterVictory() {
 }
 
 btn.fight.addEventListener('click', startFight);
+btn.inspectorStart.addEventListener('click', showInspector);
 btn.skip.addEventListener('click', showInspector);
 btn.toBattle.addEventListener('click', () => {
   if (battle) showBattleAfterVictory();
