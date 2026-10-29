@@ -3,7 +3,8 @@
 
 import { getLoc, LOC } from './loc.js';
 import { REQUIREMENTS } from './data.js';
-import { createBattle } from './game.js';
+import { createBattle, PLAYER_COLOR } from './game.js';
+import { createTankPreview } from './preview.js';
 import { initBattleUI, applyBattleLoc, startRematch } from './ui.js';
 import { initInspector, applyInspectorLoc } from './inspector.js';
 
@@ -74,6 +75,8 @@ function showScreen(name) {
   for (const [k, s] of Object.entries(screens)) s.classList.toggle('hidden', k !== name);
   btn.skip.classList.toggle('hidden', name === 'inspector');
   btn.back.classList.toggle('hidden', name !== 'inspector');
+  // над Unity-тёмным инспектором топбар тоже тёмный, над ареной — светлый
+  document.getElementById('topbar').classList.toggle('dark', name === 'inspector');
 }
 
 function showInspector() {
@@ -147,3 +150,4 @@ btn.lang.addEventListener('click', () => {
 applyStaticLoc();
 initInspector(lang, { onRematch: rematchFromLab });
 showScreen('intro');
+createTankPreview(document.getElementById('tank-preview'), PLAYER_COLOR);

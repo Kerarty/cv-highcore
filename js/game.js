@@ -5,8 +5,66 @@
 import { Application, Container, Graphics, Text } from './vendor/pixi.min.mjs';
 import { REQUIREMENTS, ABILITIES, BOSS } from './data.js';
 
-const PLAYER_COLOR = 0xff8a3d;
+export const PLAYER_COLOR = 0xff8a3d;
 const BOSS_COLOR = 0xff4d5e;
+const BOSS_SCALE = 2.0;
+const OUTLINE = 0x2c3350;
+
+function shade(hex, f = 0.62) {
+  const c = typeof hex === 'number' ? hex : parseInt(hex.replace('#', ''), 16);
+  const r = Math.min(255, Math.round(((c >> 16) & 255) * f));
+  const g = Math.min(255, Math.round(((c >> 8) & 255) * f));
+  const b = Math.min(255, Math.round((c & 255) * f));
+  return (r << 16) | (g << 8) | b;
+}
+
+// мультяшный танк в духе Tanks A Lot: толстая обводка, катки, купол-башня, морда у босса
+export function makeTank(color, scale = 1, opts = {}) {
+  const c = new Container();
+  const dark = shade(color, 0.62);
+
+  const shadow = new Graphics();
+  shadow.ellipse(0, 30, 40, 10).fill({ color: 0x1e3a12, alpha: 0.28 });
+  c.addChild(shadow);
+
+  const mkTread = (x) => {
+    const t = new Graphics();
+    t.roundRect(x, -26, 14, 52, 7).fill({ color: 0x3b4252 }).stroke({ width: 3, color: OUTLINE });
+    for (let wy = -17; wy <= 17; wy += 11) {
+      t.circle(x + 7, wy, 3.6).fill({ color: 0xa8b2c1 });
+    }
+    return t;
+  };
+  c.addChild(mkTread(-38), mkTread(24));
+
+  const body = new Graphics();
+  body.roundRect(-28, -22, 56, 44, 12).fill({ color }).stroke({ width: 4, color: dark });
+  body.roundRect(-20, -15, 18, 9, 4).fill({ color: 0xffffff, alpha: 0.35 });
+  c.addChild(body);
+
+  const turret = new Container();
+  const barrel = new Graphics();
+  barrel.roundRect(10, -6, 32, 12, 6).fill({ color: dark }).stroke({ width: 3, color: OUTLINE });
+  barrel.roundRect(36, -8, 9, 16, 4).fill({ color: 0x3b4252 }).stroke({ width: 3, color: OUTLINE });
+  turret.addChild(barrel);
+  const dome = new Graphics();
+  dome.circle(0, 0, 15).fill({ color }).stroke({ width: 4, color: dark });
+  dome.circle(-5, -6, 5).fill({ color: 0xffffff, alpha: 0.35 });
+  turret.addChild(dome);
+  if (opts.eyes) {
+    const face = new Graphics();
+    face.circle(-5, 4, 4).fill({ color: 0xffffff }).stroke({ width: 2, color: OUTLINE });
+    face.circle(6, 4, 4).fill({ color: 0xffffff }).stroke({ width: 2, color: OUTLINE });
+    face.circle(-4, 5, 1.8).fill({ color: 0x1d2333 });
+    face.circle(7, 5, 1.8).fill({ color: 0x1d2333 });
+    face.moveTo(-11, -3).lineTo(-2, 0).moveTo(12, -3).lineTo(3, 0).stroke({ width: 2.5, color: OUTLINE });
+    turret.addChild(face);
+  }
+  c.addChild(turret);
+  c.scale.set(scale);
+  c.turret = turret;
+  return c;
+}
 
 function txt(str, size, color, weight = '900', outlined = false) {
   return new Text({
@@ -36,7 +94,7 @@ export async function createBattle(stageEl, getLoc) {
   await app.init({
     resizeTo: stageEl,
     antialias: true,
-    background: 0x0d1026,
+    background: 0x7ec850,
     resolution: Math.min(window.devicePixelRatio || 1, 2),
     autoDensity: true,
   });
@@ -63,7 +121,7 @@ export async function createBattle(stageEl, getLoc) {
     }
   }
 
-  // ---------- пол ----------
+  // ---------- пол: трава-шахматка, забор, декорации — как в Tanks A Lot ----------
   const floor = new Graphics();
   world.addChild(floor);
 
@@ -71,49 +129,46 @@ export async function createBattle(stageEl, getLoc) {
     const w = app.screen.width;
     const h = app.screen.height;
     floor.clear();
-    const step = 64;
-    floor.moveTo(0, 0);
-    for (let x = step; x < w; x += step) floor.moveTo(x, 0).lineTo(x, h);
-    for (let y = step; y < h; y += step) floor.moveTo(0, y).lineTo(w, y);
-    floor.stroke({ width: 1, color: 0x1a2148, alpha: 0.55 });
-    // рамка арены
-    floor.rect(4, 4, w - 8, h - 8).stroke({ width: 3, color: 0x232b5c });
-    // пара декоративных плит
-    const deco = [[60, h - 120], [w * 0.42, 90], [w * 0.5, h - 160], [90, 110]];
-    for (const [dx, dy] of deco) {
-      floor.rect(dx, dy, 40, 40).fill({ color: 0x171d42 }).stroke({ width: 2, color: 0x232b5c });
+
+    const step = 48;
+    let row = 0;
+    for (let y = 0; y < h; y += step, row++) {
+      let col = 0;
+      for (let x = 0; x < w; x += step, col++) {
+        floor.rect(x, y, step, step).fill({ color: (row + col) % 2 ? 0x74bf49 : 0x7ec850 });
+      }
     }
-  }
 
-  // ---------- танк ----------
-  function makeTank(color, scale = 1) {
-    const c = new Container();
-    const dark = 0x12162f;
+    const crate = (x, y) => {
+      floor.rect(x, y, 46, 46).fill({ color: 0xc98f4e }).stroke({ width: 4, color: 0x7a5230 });
+      floor.moveTo(x + 5, y + 5).lineTo(x + 41, y + 41)
+        .moveTo(x + 41, y + 5).lineTo(x + 5, y + 41)
+        .stroke({ width: 4, color: 0x7a5230 });
+    };
+    const bush = (x, y) => {
+      floor.circle(x - 14, y, 16).circle(x + 14, y, 16).circle(x, y - 10, 18)
+        .fill({ color: 0x4e9a3d }).stroke({ width: 4, color: 0x2f6b26 });
+      floor.circle(x - 6, y - 10, 5).fill({ color: 0x6fbf56, alpha: 0.85 });
+    };
+    const barrel = (x, y) => {
+      floor.circle(x, y, 17).fill({ color: 0xd95f43 }).stroke({ width: 4, color: 0x8c2f1c });
+      floor.circle(x, y, 9).stroke({ width: 3, color: 0x8c2f1c });
+    };
+    crate(w * 0.06, h - 160);
+    crate(w * 0.44, 96);
+    bush(w * 0.5, h - 140);
+    barrel(120, 150);
 
-    const shadow = new Graphics();
-    shadow.ellipse(0, 30, 38, 9).fill({ color: 0x000000, alpha: 0.32 });
-    c.addChild(shadow);
-
-    const treads = new Graphics();
-    treads.roundRect(-34, -24, 12, 48, 5).fill({ color: dark }).stroke({ width: 2, color: 0x2a3266 });
-    treads.roundRect(22, -24, 12, 48, 5).fill({ color: dark }).stroke({ width: 2, color: 0x2a3266 });
-    c.addChild(treads);
-
-    const body = new Graphics();
-    body.roundRect(-26, -20, 52, 40, 8).fill({ color }).stroke({ width: 3, color: dark });
-    c.addChild(body);
-
-    const turret = new Container();
-    const barrel = new Graphics();
-    barrel.roundRect(6, -5, 34, 10, 4).fill({ color: dark }).stroke({ width: 2, color: 0x000000, alpha: 0.35 });
-    const dome = new Graphics();
-    dome.circle(0, 0, 13).fill({ color }).stroke({ width: 3, color: dark });
-    turret.addChild(barrel, dome);
-    c.addChild(turret);
-
-    c.scale.set(scale);
-    c.turret = turret;
-    return c;
+    // забор: рельсы и столбики по периметру
+    floor.rect(0, 4, w, 9).fill({ color: 0x8d6e63 }).stroke({ width: 3, color: 0x5d4037 });
+    floor.rect(0, h - 13, w, 9).fill({ color: 0x8d6e63 }).stroke({ width: 3, color: 0x5d4037 });
+    floor.rect(4, 0, 9, h).fill({ color: 0x8d6e63 }).stroke({ width: 3, color: 0x5d4037 });
+    floor.rect(w - 13, 0, 9, h).fill({ color: 0x8d6e63 }).stroke({ width: 3, color: 0x5d4037 });
+    const post = (x, y) => {
+      floor.roundRect(x - 7, y - 8, 14, 16, 3).fill({ color: 0xa97c50 }).stroke({ width: 3, color: 0x5d4037 });
+    };
+    for (let x = 0; x <= w; x += 96) { post(x, 8); post(x, h - 8); }
+    for (let y = 96; y < h; y += 96) { post(8, y); post(w - 8, y); }
   }
 
   // ---------- игрок ----------
@@ -123,10 +178,10 @@ export async function createBattle(stageEl, getLoc) {
   const playerTarget = { x: 200, y: 400 };
 
   // ---------- босс ----------
-  const boss = makeTank(BOSS_COLOR, 1.9);
+  const boss = makeTank(BOSS_COLOR, BOSS_SCALE, { eyes: true });
   world.addChild(boss);
   const bossPos = { x: 0, y: 0 };
-  const bossLabel = txt(BOSS.name, 15, '#ff8f9a');
+  const bossLabel = txt(BOSS.name, 16, '#ffffff', '900', true);
   bossLabel.anchor.set(0.5);
   world.addChild(bossLabel);
 
@@ -139,19 +194,24 @@ export async function createBattle(stageEl, getLoc) {
     const loc = getLoc();
 
     const bg = new Graphics();
-    bg.roundRect(0, 0, chipW, 46, 10).fill({ color: 0x161c3f, alpha: 0.94 }).stroke({ width: 2, color: req.color });
+    bg.roundRect(0, 0, chipW, 46, 12).fill({ color: 0xfffbe8, alpha: 0.97 }).stroke({ width: 3.5, color: req.color });
     root.addChild(bg);
 
-    const icon = txt(req.icon, 20, '#ffffff', '400');
-    icon.position.set(12, 10);
+    const badge = new Graphics();
+    badge.circle(24, 23, 15).fill({ color: 0xffffff }).stroke({ width: 3, color: req.color });
+    root.addChild(badge);
+
+    const icon = txt(req.icon, 19, '#ffffff', '400');
+    icon.anchor.set(0.5);
+    icon.position.set(24, 23);
     root.addChild(icon);
 
-    const label = txt(loc['req_short_' + req.id], 14, req.color);
-    label.position.set(46, 7);
+    const label = txt(loc['req_short_' + req.id], 14.5, '#23305e');
+    label.position.set(46, 5);
     root.addChild(label);
 
     const hpBg = new Graphics();
-    hpBg.roundRect(46, 30, chipW - 60, 8, 4).fill({ color: 0x0b0e22 });
+    hpBg.roundRect(46, 29, chipW - 60, 9, 4.5).fill({ color: 0xe3dcc4 }).stroke({ width: 2, color: 0x23305e });
     root.addChild(hpBg);
 
     const hpFill = new Graphics();
@@ -165,7 +225,8 @@ export async function createBattle(stageEl, getLoc) {
     ch.hpFill.clear();
     const frac = Math.max(0, ch.hp / ch.max);
     if (frac > 0) {
-      ch.hpFill.roundRect(46, 30, (chipW - 60) * frac, 8, 4).fill({ color: ch.req.color });
+      const color = frac > 0.5 ? 0x57d98f : frac > 0.25 ? 0xffd23f : 0xff4d5e;
+      ch.hpFill.roundRect(46, 29, (chipW - 60) * frac, 9, 4.5).fill({ color });
     }
   }
 
@@ -285,6 +346,7 @@ export async function createBattle(stageEl, getLoc) {
         const k = 1 + Math.sin(p * Math.PI) * 0.05;
         ch.root.scale.set(chipScale * k);
       });
+      if (crit) spawnParticles(c.x, c.y + 18, 0xbdbdbd, 4, 70);
     } else {
       ch.alive = false;
       const left = aliveChips().length;
@@ -293,6 +355,7 @@ export async function createBattle(stageEl, getLoc) {
         ch.root.scale.set(chipScale * (1 + p * 0.25));
       }, () => { ch.root.visible = false; });
       spawnParticles(c.x, c.y, parseInt(ch.req.color.slice(1), 16), 26, 280);
+      spawnParticles(c.x, c.y - 8, 0xbdbdbd, 12, 110);
       if (battle.onChipDead) battle.onChipDead(ch.req.id, left);
       if (left === 3 && !rage) {
         rage = true;
@@ -307,7 +370,7 @@ export async function createBattle(stageEl, getLoc) {
     tween(1.0, (p) => {
       boss.rotation = p * Math.PI * 2;
       boss.alpha = 1 - p;
-      boss.scale.set(1.9 * (1 + p * 0.4));
+      boss.scale.set(BOSS_SCALE * (1 + p * 0.4));
       bossLabel.alpha = 1 - p;
     }, () => {
       boss.visible = false;
@@ -327,9 +390,10 @@ export async function createBattle(stageEl, getLoc) {
 
     const g = new Container();
     const glow = new Graphics();
-    glow.circle(0, 0, 11).fill({ color: ability.color, alpha: 0.28 });
+    glow.circle(0, 0, 11).fill({ color: ability.color, alpha: 0.22 });
     const core = new Graphics();
-    core.circle(0, 0, 5.5).fill({ color: ability.color }).stroke({ width: 2, color: 0x0d1026 });
+    core.circle(0, 0, 6).fill({ color: 0x2e3446 }).stroke({ width: 2.5, color: 0xffffff });
+    core.circle(-2, -2, 1.8).fill({ color: 0xffffff, alpha: 0.9 });
     g.addChild(glow, core);
     g.position.set(from.x, from.y);
     world.addChild(g);
@@ -393,7 +457,7 @@ export async function createBattle(stageEl, getLoc) {
     boss.visible = true;
     boss.alpha = 1;
     boss.rotation = 0;
-    boss.scale.set(1.9);
+    boss.scale.set(BOSS_SCALE);
     bossLabel.alpha = 1;
     for (const ch of chips) {
       ch.hp = ch.max * bossHpMult;
@@ -498,9 +562,10 @@ export async function createBattle(stageEl, getLoc) {
         const d = Math.hypot(dx, dy) || 1;
         const g = new Container();
         const glow = new Graphics();
-        glow.circle(0, 0, 13).fill({ color: BOSS_COLOR, alpha: 0.25 });
+        glow.circle(0, 0, 13).fill({ color: BOSS_COLOR, alpha: 0.2 });
         const core = new Graphics();
-        core.circle(0, 0, 8).fill({ color: BOSS_COLOR }).stroke({ width: 2, color: 0x0d1026 });
+        core.circle(0, 0, 8.5).fill({ color: 0xd94353 }).stroke({ width: 2.5, color: 0xffffff });
+        core.circle(-2.5, -2.5, 2.2).fill({ color: 0xffffff, alpha: 0.9 });
         const q = txt('?', 13, '#fff', '900', true);
         q.anchor.set(0.5);
         g.addChild(glow, core, q);

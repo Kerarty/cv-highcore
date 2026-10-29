@@ -28,6 +28,15 @@ const abilityButtons = new Map();
 const deadChips = new Set();
 let toastTimer = null;
 
+// светлее оттенок цвета способности для градиента кнопки
+function lighten(hex, f = 1.22) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, Math.round(((n >> 16) & 255) * f));
+  const g = Math.min(255, Math.round(((n >> 8) & 255) * f));
+  const b = Math.min(255, Math.round((n & 255) * f));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 // ---------- хотбар ----------
 
 function buildHotbar() {
@@ -38,11 +47,11 @@ function buildHotbar() {
     const req = REQUIREMENTS.find((r) => r.id === ab.target);
     const b = document.createElement('button');
     b.className = 'ability';
-    b.style.borderColor = ab.color;
+    b.style.background = `linear-gradient(180deg, ${lighten(ab.color)}, ${ab.color})`;
     b.innerHTML = `
       <span class="key">${ab.key}</span>
       <span class="ico">${req.icon}</span>
-      <span class="name" style="color:${ab.color}">${loc['ab_' + ab.id]}</span>
+      <span class="name">${loc['ab_' + ab.id]}</span>
       <span class="target">${loc['tgt_' + ab.target]}</span>
       <div class="cd-overlay"></div>
     `;
